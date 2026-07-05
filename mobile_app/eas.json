@@ -9,7 +9,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://your-cardpilot-backend.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://cardpilot-t5e1.onrender.com"
       }
     },
     "production": {
