@@ -1,0 +1,29 @@
+[PASS] Health endpoint: {'status': 'ok', 'service': 'cardpilot', 'version': '1.6.0'}
+[PASS] Landing page: HTTP 200
+[PASS] Login page: HTTP 200
+[PASS] Admin login: HTTP 303
+[PASS] Authenticated workspace: HTTP 200
+[PASS] Admin portal: HTTP 200
+[PASS] Admin password reset action: HTTP 200
+[PASS] Database page: HTTP 200
+[PASS] Expanded merchant database: 570 merchants loaded
+[PASS] Cards API: returned 5 cards
+[PASS] Single card API: HTTP 200
+[PASS] Reward calculation API: rule=RR0001 expected=250.0
+[PASS] Best card API: returned 5 recommendations
+[PASS] My Cards UI add: HTTP 200
+[PASS] Best card UI: HTTP 200
+[PASS] Card Advisor UI: HTTP 200
+[PASS] Statement upload UI: HTTP 200
+[PASS] Statement upload API: transactions=4
+[PASS] PDF statement upload UI: HTTP 200
+[PASS] PDF statement upload API: transactions=4
+[PASS] Mobile me API: HTTP 200
+[PASS] Mobile my-cards API: cards=1
+[PASS] Admin stats API: users=2
+[PASS] Self-test route: passed=9 failed=0
+
+Summary
+-------
+Passed: 24
+Failed: 0

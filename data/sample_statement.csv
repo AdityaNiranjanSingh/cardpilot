@@ -1,0 +1,5 @@
+transaction_date,merchant_raw,amount_inr,actual_value_inr,transaction_channel,category,is_emi,is_wallet_load
+2026-06-12,Amazon,5000,50,online,online shopping,false,false
+2026-06-13,Swiggy,1200,12,online,food delivery,false,false
+2026-06-14,Paytm Wallet Load,3000,0,online,wallet,false,true
+2026-06-15,Big Bazaar,2500,25,offline,offline / general,false,false

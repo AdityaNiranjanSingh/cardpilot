@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "CardPilot",
+    "slug": "cardpilot-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "com.cardpilot.app",
+      "versionCode": 1
+    },
+    "ios": {
+      "bundleIdentifier": "com.cardpilot.app"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "replace-after-eas-init"
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "CardPilot",
+  "short_name": "CardPilot",
+  "description": "Credit-card rewards intelligence, statement review, and card recommendations.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#111827",
+  "icons": [
+    {"src": "/static/cardpilot-icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <meta name="theme-color" content="#111827">
+  <link rel="icon" href="/static/cardpilot-icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="CardPilot home">
+      <img class="brand-mark" src="/static/cardpilot-icon.svg" alt="CardPilot CP credit card logo">
+      <span><strong>CardPilot</strong><small>Rewards intelligence</small></span>
+    </a>
+    <nav class="top-nav" aria-label="Primary navigation">
+      <a class="{{ 'active' if active_page == 'home' else '' }}" href="/">Home</a>
+      <a class="{{ 'active' if active_page == 'app' else '' }}" href="/app">Workspace</a>
+      <a href="/app#best-card">Best Card Finder</a>
+      <a href="/app#adviser">Card Advisor</a>
+      <a href="/app#analyze">Statement Analyzer</a>
+      <a class="{{ 'active' if active_page == 'database' else '' }}" href="/database">Database</a>
+      {% if current_user and current_user.is_admin %}<a class="{{ 'active' if active_page == 'admin' else '' }}" href="/admin">Admin</a>{% endif %}
+    </nav>
+    <div class="auth-actions">
+      {% if current_user %}
+        <span class="user-pill">{{ current_user.full_name or current_user.email }}</span>
+        <form action="/auth/logout" method="post"><button class="ghost nav-button" type="submit">Logout</button></form>
+      {% else %}
+        <a class="nav-button ghost" href="/login">Sign in</a>
+        <a class="nav-button primary" href="/signup">Create account</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="page-shell">{% block content %}{% endblock %}</main>
+
+  <footer class="site-footer">
+    <div><strong>CardPilot {{ app_version }}</strong><span>Multi-user rewards tracking, card recommendations, statement review, and admin analytics.</span></div>
+    <div class="footer-links"><a href="/health" target="_blank" rel="noreferrer">Health</a><a href="/docs" target="_blank" rel="noreferrer">API docs</a><a href="/self-test" target="_blank" rel="noreferrer">System check</a></div>
+  </footer>
+  <script>
+    if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('/static/service-worker.js').catch(() => {})); }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

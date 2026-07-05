@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Create account' if mode == 'signup' else 'Sign in' }} - CardPilot{% endblock %}
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-copy">
+    <p class="eyebrow light">{{ 'Create your account' if mode == 'signup' else 'Welcome back' }}</p>
+    <h1>{{ 'Your credit-card command center starts here.' if mode == 'signup' else 'Sign in to your CardPilot workspace.' }}</h1>
+    <p>{{ 'Save cards, compare reward value, upload statements, and come back later from any device after hosting CardPilot online.' if mode == 'signup' else 'Access your saved cards, recommendations, statement analysis, and admin portal from one secure account.' }}</p>
+    <div class="glass-note"><strong>Local admin for testing</strong><span>admin@cardpilot.local / Admin@12345</span></div>
+  </div>
+  <div class="auth-card">
+    <h2>{{ 'Create account' if mode == 'signup' else 'Sign in' }}</h2>
+    {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+    {% if mode == 'signup' %}
+      <form method="post" action="/auth/signup" class="form-stack">
+        <input type="hidden" name="next" value="{{ next or '/app' }}">
+        <label for="full_name">Full name</label><input id="full_name" name="full_name" type="text" placeholder="Your name" required>
+        <label for="email">Email</label><input id="email" name="email" type="email" placeholder="you@example.com" required>
+        <label for="password">Password</label><input id="password" name="password" type="password" minlength="8" placeholder="Minimum 8 characters" required>
+        <label for="preferred_reward_type">Preferred reward type</label><select id="preferred_reward_type" name="preferred_reward_type"><option value="cashback">Cashback</option><option value="points">Reward points</option><option value="miles">Travel miles</option><option value="balanced">Balanced</option></select>
+        <button type="submit">Create account</button>
+      </form>
+      <p class="auth-switch">Already have an account? <a href="/login">Sign in</a></p>
+    {% else %}
+      <form method="post" action="/auth/login" class="form-stack">
+        <input type="hidden" name="next" value="{{ next or '/app' }}">
+        <label for="email">Email</label><input id="email" name="email" type="email" placeholder="you@example.com" required>
+        <label for="password">Password</label><input id="password" name="password" type="password" placeholder="Your password" required>
+        <button type="submit">Sign in</button>
+      </form>
+      <p class="auth-switch">New to CardPilot? <a href="/signup">Create an account</a></p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

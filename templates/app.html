@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Workspace - CardPilot{% endblock %}
+{% block content %}
+<section class="hero-panel slim-hero">
+  <div class="hero-copy dark-hero-copy">
+    <p class="eyebrow light">Your workspace</p>
+    <h1>Welcome back, {{ current_user.full_name or current_user.email }}.</h1>
+    <p class="hero-text light-text">Save cards, compare rewards, get new-card suggestions, and analyze statements from your personal account.</p>
+    <div class="hero-actions"><a class="button-link" href="#my-cards">Manage cards</a><a class="button-link secondary-link dark-secondary" href="#best-card">Find best card</a><a class="button-link ghost-link dark-ghost" href="#analyze">Analyze statement</a></div>
+  </div>
+  <div class="hero-card mini-card"><img class="brand-mark large" src="/static/cardpilot-icon.svg" alt="CardPilot"><h2>{{ stats.saved_cards }}</h2><p>Saved cards</p><p class="muted-text">{{ stats.statements }} statements analyzed</p></div>
+</section>
+
+<section class="metric-grid">
+  <div class="metric"><span>Your saved cards</span><strong>{{ stats.saved_cards }}</strong></div>
+  <div class="metric"><span>Your statements</span><strong>{{ stats.statements }}</strong></div>
+  <div class="metric"><span>Your transactions</span><strong>{{ stats.transactions }}</strong></div>
+  <div class="metric"><span>Possible missing INR</span><strong>{{ '%.0f'|format(stats.recent_possible_missing_inr or 0) }}</strong></div>
+</section>
+{% if message %}<div class="notice">{{ message }}</div>{% endif %}
+{% if error %}<div class="alert">{{ error }}</div>{% endif %}
+{% if debug_detail %}<section class="panel danger-panel"><h2>Technical details</h2><pre>{{ debug_detail }}</pre></section>{% endif %}
+
+<section class="workspace-grid two-one">
+  <div class="panel glass-panel" id="my-cards">
+    <div class="panel-title"><div><p class="eyebrow">Portfolio</p><h2>My Cards</h2></div><span class="soft-badge">Account saved</span></div>
+    <p class="muted-text">Cards saved here are linked to your login account. Use them for personalized recommendations and statement analysis.</p>
+    <form action="/ui/my-cards/add" method="post" class="form-stack">
+      <label for="portfolio_card_id">Add a card</label>
+      <select name="card_id" id="portfolio_card_id" required>{% for card in cards %}<option value="{{ card.card_id }}">{{ card.bank_name }} - {{ card.card_name }}</option>{% endfor %}</select>
+      <label for="masked_last4">Last 4 digits, optional</label>
+      <input type="text" id="masked_last4" name="masked_last4" maxlength="4" inputmode="numeric" placeholder="1234">
+      <button type="submit">Save card</button>
+    </form>
+    {% if saved_cards %}
+    <div class="table-wrap compact-table"><table><thead><tr><th>Card</th><th>Last 4</th><th></th></tr></thead><tbody>{% for saved in saved_cards %}<tr><td><strong>{{ saved.bank_name }}</strong><br><span>{{ saved.card_name }}</span></td><td>{{ saved.masked_last4 or '-' }}</td><td><form action="/ui/my-cards/remove" method="post" class="inline-form"><input type="hidden" name="user_card_id" value="{{ saved.user_card_id }}"><button type="submit" class="ghost danger">Remove</button></form></td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<p class="empty-state">No cards saved yet. Add a card to unlock My Cards-only recommendations and statement analysis.</p>{% endif %}
+  </div>
+  <div class="panel insight-panel app-panel"><p class="eyebrow light">Mobile-ready</p><h2>Use it like an app.</h2><p class="muted-text light-text">This version includes an installable PWA shell and a mobile app starter folder. The same account can be used across website and mobile API clients after deployment.</p><div class="mini-stat-list"><div><strong>{{ stats.saved_cards }}</strong><span>saved cards</span></div><div><strong>{{ stats.discrepancies }}</strong><span>review items</span></div><div><strong>{{ stats.statements }}</strong><span>statements</span></div></div></div>
+</section>
+
+<section class="workspace-grid" id="best-card">
+  <div class="panel elevated-panel">
+    <div class="panel-title"><div><p class="eyebrow">Purchase planner</p><h2>Best Card Finder</h2></div><span class="soft-badge">Merchant dropdown</span></div>
+    <p class="muted-text">Choose a merchant, amount, and category. CardPilot ranks the best card by estimated reward value.</p>
+    <form action="/ui/recommend" method="post" class="form-stack">
+      <label for="merchant_raw">Merchant</label><select name="merchant_raw" id="merchant_raw" required>{% for merchant in merchants %}<option value="{{ merchant.name }}" data-category="{{ merchant.category }}">{{ merchant.label }}</option>{% endfor %}</select>
+      <label for="merchant_custom">Custom merchant, optional</label><input type="text" id="merchant_custom" name="merchant_custom" placeholder="Type only if merchant is not in dropdown">
+      <label for="amount_inr">Purchase amount</label><input type="number" step="0.01" min="1" id="amount_inr" name="amount_inr" value="5000" required>
+      <label for="category">Category</label><select name="category" id="category">{% for category in categories %}<option value="{{ category }}">{{ category|title }}</option>{% endfor %}</select>
+      <label class="checkbox-row"><input type="checkbox" name="use_my_cards_only" value="yes" checked> Recommend only from My Cards</label>
+      <button type="submit">Find best card</button>
+    </form>
+  </div>
+  <div class="panel elevated-panel" id="adviser">
+    <div class="panel-title"><div><p class="eyebrow">New customer</p><h2>Credit Card Advisor</h2></div><span class="soft-badge">Card suggestions</span></div>
+    <p class="muted-text">For a new customer, enter spending behavior and CardPilot suggests which card type and card options may fit.</p>
+    <form action="/ui/card-advisor" method="post" class="form-stack">
+      <label for="monthly_spend_inr">Approximate monthly card spend</label><input type="number" step="500" min="1000" id="monthly_spend_inr" name="monthly_spend_inr" value="50000" required>
+      <label for="primary_category">Primary spend category</label><select id="primary_category" name="primary_category" required>{% for category in categories %}<option value="{{ category }}" {% if category == 'online shopping' %}selected{% endif %}>{{ category|title }}</option>{% endfor %}</select>
+      <label for="secondary_category">Secondary spend category</label><select id="secondary_category" name="secondary_category">{% for category in categories %}<option value="{{ category }}" {% if category == 'travel' %}selected{% endif %}>{{ category|title }}</option>{% endfor %}</select>
+      <div class="split-fields"><div><label for="reward_preference">Reward preference</label><select id="reward_preference" name="reward_preference"><option value="cashback">Cashback</option><option value="points">Reward points</option><option value="miles">Travel miles</option><option value="balanced">Balanced</option></select></div><div><label for="annual_fee_preference">Annual fee comfort</label><select id="annual_fee_preference" name="annual_fee_preference"><option value="no_fee">No fee only</option><option value="low_fee" selected>Up to INR 1,000</option><option value="mid_fee">Up to INR 3,000</option><option value="premium">Up to INR 10,000</option><option value="any">No limit</option></select></div></div>
+      <label for="travel_frequency">Travel frequency</label><select id="travel_frequency" name="travel_frequency"><option value="rarely">Rarely</option><option value="sometimes" selected>Sometimes</option><option value="often">Often</option><option value="frequent">Very frequently</option></select>
+      <button type="submit">Suggest credit cards</button>
+    </form>
+  </div>
+</section>
+
+{% if recommendation_result %}
+<section class="panel highlight-panel"><div class="panel-title"><div><p class="eyebrow">Purchase recommendation</p><h2>Best card for {{ recommendation_result.merchant_raw }}</h2><p class="muted-text">{{ recommendation_result.scope }} for INR {{ '%.2f'|format(recommendation_result.amount_inr) }}</p></div></div>{% if recommendation_result.recommendations %}<div class="card-result-grid">{% for rec in recommendation_result.recommendations[:3] %}<article class="result-card {{ 'winner-card' if loop.index == 1 else '' }}"><span class="rank-badge">#{{ loop.index }}</span><h3>{{ rec.card_name }}</h3><p>{{ rec.bank_name or '' }}</p><strong>INR {{ '%.2f'|format(rec.expected_value_inr or 0) }}</strong><span class="status-chip">{{ rec.confidence }}</span></article>{% endfor %}</div><div class="table-wrap"><table><thead><tr><th>Rank</th><th>Card</th><th>Expected value</th><th>Rule</th><th>Confidence</th><th>Reason</th></tr></thead><tbody>{% for rec in recommendation_result.recommendations %}<tr><td>{{ loop.index }}</td><td><strong>{{ rec.bank_name or '' }}</strong><br><span>{{ rec.card_name }}</span></td><td><strong>INR {{ '%.2f'|format(rec.expected_value_inr or 0) }}</strong></td><td>{{ rec.rule_id or '-' }}<br><span>{{ rec.reward_rate or '' }}</span></td><td><span class="status-chip">{{ rec.confidence }}</span></td><td>{{ rec.explanation }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="empty-state">No matching card rule found. Try another category or add more cards.</p>{% endif %}</section>
+{% endif %}
+
+{% if suggestion_result %}
+<section class="panel highlight-panel" id="advisor-results"><div class="panel-title"><div><p class="eyebrow">Card advisor result</p><h2>Suggested cards for a new customer</h2><p class="muted-text">Monthly spend INR {{ '%.0f'|format(suggestion_result.monthly_spend_inr) }} • {{ suggestion_result.primary_category|title }} focus • {{ suggestion_result.reward_preference|title }} preference</p></div></div>{% if suggestion_result.recommendations %}<div class="advisor-grid">{% for rec in suggestion_result.recommendations %}<article class="advisor-card"><div class="advisor-card-top"><span class="rank-badge">#{{ loop.index }}</span><span class="status-chip">{{ rec.confidence }}</span></div><h3>{{ rec.card_name }}</h3><p class="muted-text">{{ rec.bank_name }} • {{ rec.card_type }}</p><div class="value-row"><span>Estimated annual value</span><strong>INR {{ '%.0f'|format(rec.estimated_annual_value_inr or 0) }}</strong></div><div class="value-row"><span>Net after fee</span><strong>INR {{ '%.0f'|format(rec.estimated_net_annual_value_inr or 0) }}</strong></div><p class="reason-text">{{ rec.reason }}</p></article>{% endfor %}</div>{% else %}<p class="empty-state">No card matched this profile. Try increasing annual-fee comfort or choosing a broader category.</p>{% endif %}</section>
+{% endif %}
+
+<section class="panel statement-panel professional-panel" id="analyze">
+  <div class="panel-title">
+    <div><p class="eyebrow">Statement intelligence</p><h2>Statement Analyzer</h2><p class="muted-text">Upload CSV, XLSX, or a text-based PDF credit-card statement. CardPilot extracts transactions, calculates expected rewards, and highlights rows that need review.</p></div>
+    <span class="soft-badge">PDF upload improved</span>
+  </div>
+  <div class="upload-info-grid">
+    <div><strong>Supported</strong><span>CSV, XLSX, XLSM, text PDFs</span></div>
+    <div><strong>Password PDFs</strong><span>Enter the statement password if your bank locks the PDF</span></div>
+    <div><strong>Scanned PDFs</strong><span>Upload CSV/XLSX for image-only statements</span></div>
+  </div>
+  {% if saved_cards %}
+  <form action="/ui/analyze" method="post" enctype="multipart/form-data" class="form-grid professional-upload-form">
+    <div><label for="card_id">Card used for this statement</label><select name="card_id" id="card_id" required>{% for saved in saved_cards %}<option value="{{ saved.card_id }}">{{ saved.bank_name }} - {{ saved.card_name }}{% if saved.masked_last4 %} • {{ saved.masked_last4 }}{% endif %}</option>{% endfor %}</select></div>
+    <div class="upload-zone"><label for="file">Statement file</label><input type="file" id="file" name="file" accept=".csv,.xlsx,.xlsm,.pdf" required><small>Choose a statement file from your bank portal.</small></div>
+    <div><label for="statement_password">PDF password, optional</label><input type="password" id="statement_password" name="statement_password" placeholder="Only if required"></div>
+    <div class="form-submit-cell"><button type="submit">Analyze statement</button></div>
+  </form>
+  {% else %}<p class="empty-state">Add at least one card in My Cards before uploading a statement.</p>{% endif %}
+</section>
+{% endblock %}
+{% block scripts %}<script>const merchantSelect=document.getElementById('merchant_raw');const categorySelect=document.getElementById('category');if(merchantSelect&&categorySelect){merchantSelect.addEventListener('change',()=>{const c=merchantSelect.options[merchantSelect.selectedIndex].dataset.category;if(!c)return;for(const o of categorySelect.options){if(o.value===c){o.selected=true;break;}}});}</script>{% endblock %}

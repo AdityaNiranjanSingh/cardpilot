@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}CardPilot - Professional credit card rewards intelligence{% endblock %}
+{% block content %}
+<section class="hero-panel landing-hero professional-hero" id="overview">
+  <div class="hero-copy dark-hero-copy">
+    <p class="eyebrow light">CardPilot rewards intelligence</p>
+    <h1>Professional credit card decisions for every spend.</h1>
+    <p class="hero-text light-text">CardPilot helps users save their cards, choose the best card before paying, analyze statements after paying, and discover better cards from a secure personal workspace.</p>
+    <div class="hero-actions">
+      {% if current_user %}<a class="button-link" href="/app">Open workspace</a>{% else %}<a class="button-link" href="/signup">Create account</a><a class="button-link secondary-link dark-secondary" href="/login">Sign in</a>{% endif %}
+      <a class="button-link ghost-link dark-ghost" href="#advisor-preview">Find a card</a>
+    </div>
+    <div class="feature-list"><span>Secure login</span><span>PDF statement upload</span><span>Merchant dropdown</span><span>Admin analytics</span></div>
+  </div>
+  <div class="executive-preview" aria-label="CardPilot product preview">
+    <div class="preview-topbar"><span class="preview-dot"></span><span class="preview-dot"></span><span class="preview-dot"></span><strong>CardPilot Workspace</strong></div>
+    <div class="preview-card premium-gradient"><span>Recommended card</span><strong>SBI Cashback</strong><small>Estimated value ₹250 on ₹5,000</small></div>
+    <div class="preview-grid">
+      <div><span>Saved cards</span><strong>{{ stats.saved_cards or 0 }}</strong></div>
+      <div><span>Reward rules</span><strong>{{ stats.rules }}</strong></div>
+      <div><span>Merchants</span><strong>{{ stats.merchants }}</strong></div>
+      <div><span>Users</span><strong>{{ stats.users or 0 }}</strong></div>
+    </div>
+    <div class="preview-list"><div><span>Amazon</span><b>Best card ranked</b></div><div><span>PDF statement</span><b>Transactions parsed</b></div><div><span>Admin</span><b>Activity visible</b></div></div>
+  </div>
+</section>
+
+<section class="metric-grid">
+  <div class="metric"><span>Cards in database</span><strong>{{ stats.cards }}</strong></div>
+  <div class="metric"><span>Reward rules</span><strong>{{ stats.rules }}</strong></div>
+  <div class="metric"><span>Merchant mappings</span><strong>{{ stats.merchants }}</strong></div>
+  <div class="metric"><span>Platform</span><strong>Live-ready</strong></div>
+</section>
+
+<section class="section-heading" id="product"><p class="eyebrow">Product modules</p><h2>A complete rewards workspace for users, plus a private admin control center for you.</h2></section>
+<section class="steps-grid professional-steps">
+  <div class="step-card premium-step"><span>01</span><h3>User workspace</h3><p>Users sign up, log in, save cards, logout, and return from website or mobile after deployment.</p></div>
+  <div class="step-card"><span>02</span><h3>Best Card Finder</h3><p>Merchant and category dropdowns rank cards by estimated reward value before a purchase.</p></div>
+  <div class="step-card"><span>03</span><h3>Statement Analyzer</h3><p>CSV, XLSX, and text-based PDF statements are parsed into transaction-level reward calculations.</p></div>
+  <div class="step-card"><span>04</span><h3>Admin portal</h3><p>View user growth, saved card activity, statement uploads, database coverage, and support actions.</p></div>
+</section>
+
+<section class="workspace-grid">
+  <div class="panel glass-panel professional-panel"><p class="eyebrow">For users</p><h2>Choose the right card before paying.</h2><p class="muted-text">CardPilot compares saved cards and the full database using merchant mapping, reward rules, category logic, and caps where available.</p><a class="button-link" href="/signup">Create account</a></div>
+  <div class="panel insight-panel professional-panel"><p class="eyebrow light">For founder/admin</p><h2>Monitor product activity professionally.</h2><p class="muted-text light-text">The admin portal shows users, saved cards, statement uploads, transactions analyzed, review items, and database coverage without exposing user passwords.</p><a class="button-link dark-secondary" href="/login?next=/admin">Admin login</a></div>
+</section>
+
+<section class="panel public-advisor professional-panel" id="advisor-preview">
+  <div class="panel-title"><div><p class="eyebrow">New customer advisor</p><h2>Which credit card should I consider?</h2></div><span class="soft-badge">Card suggestions</span></div>
+  <p class="muted-text">Enter monthly spend, reward preference, fee comfort, and main spend categories. CardPilot suggests starter cards to consider.</p>
+  <form action="/public/card-advisor" method="post" class="form-grid advisor-preview-form">
+    <div><label for="pub_monthly_spend">Monthly spend</label><input id="pub_monthly_spend" name="monthly_spend_inr" type="number" min="1000" step="500" value="50000" required></div>
+    <div><label for="pub_primary">Primary category</label><select id="pub_primary" name="primary_category">{% for category in categories or ['online shopping','travel','dining','grocery','fuel'] %}<option value="{{ category }}">{{ category|title }}</option>{% endfor %}</select></div>
+    <div><label for="pub_secondary">Secondary category</label><select id="pub_secondary" name="secondary_category"><option value="">None</option>{% for category in categories or [] %}<option value="{{ category }}">{{ category|title }}</option>{% endfor %}</select></div>
+    <div><label for="pub_preference">Reward preference</label><select id="pub_preference" name="reward_preference"><option value="cashback">Cashback</option><option value="points">Reward points</option><option value="miles">Travel miles</option><option value="balanced">Balanced</option></select></div>
+    <div><label for="pub_fee">Annual fee comfort</label><select id="pub_fee" name="annual_fee_preference"><option value="no_fee">No fee only</option><option value="low_fee" selected>Up to ₹1,000</option><option value="mid_fee">Up to ₹3,000</option><option value="premium">Premium if valuable</option><option value="any">No limit</option></select></div>
+    <div><label for="pub_travel">Travel frequency</label><select id="pub_travel" name="travel_frequency"><option value="rarely">Rarely</option><option value="sometimes" selected>Sometimes</option><option value="often">Often</option><option value="frequent">Very frequently</option></select></div>
+    <div class="form-submit-cell"><button type="submit">Suggest cards</button></div>
+  </form>
+</section>
+
+{% if suggestion_result %}
+<section class="panel highlight-panel professional-panel"><p class="eyebrow">Advisor preview</p><h2>Cards to consider</h2>
+  <div class="advisor-grid">{% for rec in suggestion_result.recommendations %}<article class="advisor-card"><span class="rank-badge">#{{ loop.index }}</span><h3>{{ rec.card_name }}</h3><p>{{ rec.bank_name }} • {{ rec.card_type }}</p><div class="value-row"><span>Annual value</span><strong>₹{{ '%.0f'|format(rec.estimated_annual_value_inr or 0) }}</strong></div><p class="reason-text">{{ rec.reason }}</p></article>{% endfor %}</div>
+  <p class="muted-text">Create an account to save cards and use personalized recommendations.</p>
+</section>
+{% endif %}
+{% endblock %}

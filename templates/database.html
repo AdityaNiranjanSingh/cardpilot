@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Database - CardPilot{% endblock %}
+{% block content %}
+<section class="app-hero slim-hero"><div><p class="eyebrow">Rules database</p><h1>CardPilot database</h1><p class="hero-text">Browse the card master data, reward rules, exclusions, merchant mappings, and data-quality notes used by the reward engine.</p></div></section>
+<section class="metric-grid"><div class="metric"><span>Cards</span><strong>{{ stats.cards }}</strong></div><div class="metric"><span>Reward rules</span><strong>{{ stats.rules }}</strong></div><div class="metric"><span>Exclusions</span><strong>{{ stats.exclusions }}</strong></div><div class="metric"><span>Merchants</span><strong>{{ stats.merchants }}</strong></div></section>
+<section class="panel"><form action="/database" method="get" class="search-form"><label for="q">Search cards</label><input type="text" name="q" id="q" value="{{ q }}" placeholder="SBI, HDFC, Cashback, Atlas"><button type="submit">Search</button><a class="button-link secondary-link small-link" href="/database">Reset</a></form>
+  <div class="table-wrap"><table><thead><tr><th>Card</th><th>Bank</th><th>Annual fee</th><th>Reward currency</th><th>Rules</th><th>Quality</th><th>Next action</th></tr></thead><tbody>{% for row in rows %}<tr><td><strong>{{ row.card_id }}</strong><br><span>{{ row.card_name }}</span></td><td>{{ row.bank_name or '-' }}</td><td>{{ row.annual_fee or '-' }}</td><td>{{ row.reward_currency or '-' }}</td><td>{{ row.rules_count }}</td><td><span class="status-chip">{{ row.data_quality or 'Unmarked' }}</span></td><td>{{ row.next_action or '-' }}</td></tr>{% else %}<tr><td colspan="7" class="empty-state">No cards matched your search.</td></tr>{% endfor %}</tbody></table></div>
+</section>
+{% endblock %}

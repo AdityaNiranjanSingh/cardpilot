@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Admin Portal - CardPilot{% endblock %}
+{% block content %}
+<section class="hero-panel admin-hero slim-hero">
+  <div class="hero-copy dark-hero-copy">
+    <p class="eyebrow light">Admin portal</p>
+    <h1>Operate CardPilot with confidence.</h1>
+    <p class="hero-text light-text">Monitor growth, user activity, saved cards, statement uploads, possible reward discrepancies, and database coverage from one secure control center.</p>
+    <div class="feature-list"><span>User analytics</span><span>Password reset</span><span>Reward activity</span><span>Database coverage</span></div>
+  </div>
+  <div class="admin-command-card">
+    <img src="/static/cardpilot-icon.svg" alt="CardPilot CP">
+    <span>Signed in as</span>
+    <strong>{{ current_user.email }}</strong>
+    <small>Administrator</small>
+  </div>
+</section>
+
+{% if message %}<div class="notice">{{ message }}</div>{% endif %}
+{% if error %}<div class="alert">{{ error }}</div>{% endif %}
+
+<section class="metric-grid admin-metrics">
+  <div class="metric"><span>Total users</span><strong>{{ admin_stats.users }}</strong></div>
+  <div class="metric"><span>Saved cards</span><strong>{{ admin_stats.saved_cards }}</strong></div>
+  <div class="metric"><span>Statements</span><strong>{{ admin_stats.statements }}</strong></div>
+  <div class="metric"><span>Possible missing</span><strong>₹{{ '%.0f'|format(admin_stats.total_possible_missing or 0) }}</strong></div>
+</section>
+<section class="metric-grid admin-metrics second-row">
+  <div class="metric"><span>Transactions</span><strong>{{ admin_stats.transactions }}</strong></div>
+  <div class="metric"><span>Discrepancies</span><strong>{{ admin_stats.discrepancies }}</strong></div>
+  <div class="metric"><span>Cards DB</span><strong>{{ admin_stats.cards }}</strong></div>
+  <div class="metric"><span>Merchants DB</span><strong>{{ admin_stats.merchants }}</strong></div>
+</section>
+
+<section class="panel security-panel" id="users">
+  <div class="panel-title"><div><p class="eyebrow">Security</p><h2>User management</h2></div><span class="soft-badge success-pill">Passwords are protected</span></div>
+  <p class="muted-text">CardPilot stores passwords as one-way hashes. Admins cannot view user passwords. For support, use the reset action below to set a temporary password and ask the user to change it after logging in.</p>
+  <div class="table-wrap admin-user-table"><table><thead><tr><th>User</th><th>Status</th><th>Activity</th><th>Password</th><th>Reset password</th></tr></thead><tbody>
+    {% for user in admin_stats.users_detail %}
+    <tr>
+      <td><strong>{{ user.email or user.user_id }}</strong><br><span>{{ user.full_name or '-' }}{% if user.is_admin %} • Admin{% endif %}</span></td>
+      <td><span class="status-chip">{{ user.status or 'active' }}</span><br><span>{{ user.preferred_reward_type or '-' }}</span></td>
+      <td><strong>{{ user.saved_cards }}</strong> cards<br><span>{{ user.statements }} statements</span><br><span>Last login: {{ user.last_login_at or 'Never' }}</span></td>
+      <td><span class="status-chip safe-chip">{{ user.password_status }}</span><br><span>Not viewable</span></td>
+      <td>
+        <form action="/admin/users/reset-password" method="post" class="inline-reset-form">
+          <input type="hidden" name="user_id" value="{{ user.user_id }}">
+          <input type="password" name="new_password" minlength="8" placeholder="New temp password" required>
+          <button type="submit" class="small-link">Reset</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}<tr><td colspan="5" class="empty-state">No users yet.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+
+<section class="workspace-grid">
+  <div class="panel">
+    <div class="panel-title"><div><p class="eyebrow">Users</p><h2>Recent users</h2></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Email</th><th>Name</th><th>Role</th><th>Created</th></tr></thead><tbody>
+      {% for user in admin_stats.recent_users %}<tr><td>{{ user.email or '-' }}</td><td>{{ user.full_name or '-' }}</td><td><span class="status-chip">{{ 'Admin' if user.is_admin else 'User' }}</span></td><td>{{ user.created_at }}</td></tr>{% else %}<tr><td colspan="4" class="empty-state">No users yet.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><div><p class="eyebrow">Cards</p><h2>Most saved cards</h2></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Card</th><th>Saved</th></tr></thead><tbody>
+      {% for row in admin_stats.popular_cards %}<tr><td><strong>{{ row.bank_name }}</strong><br><span>{{ row.card_name }}</span></td><td><strong>{{ row.saved_count }}</strong></td></tr>{% else %}<tr><td colspan="2" class="empty-state">No cards saved yet.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-title"><div><p class="eyebrow">Activity</p><h2>Recent statement uploads</h2></div><a href="/self-test" class="button-link secondary-link small-link">Run system check</a></div>
+  <div class="table-wrap"><table><thead><tr><th>Statement</th><th>User</th><th>Card</th><th>Source</th><th>Uploaded</th></tr></thead><tbody>
+    {% for row in admin_stats.recent_statements %}<tr><td>{{ row.statement_id }}</td><td>{{ row.user_id }}</td><td>{{ row.card_id }}</td><td>{{ row.statement_source }}</td><td>{{ row.uploaded_at }}</td></tr>{% else %}<tr><td colspan="5" class="empty-state">No uploads yet.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

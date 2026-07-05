@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Statement analysis - CardPilot{% endblock %}
+{% block content %}
+<section class="hero-panel slim-hero results-hero">
+  <div class="hero-copy dark-hero-copy">
+    <p class="eyebrow light">Statement intelligence</p>
+    <h1>Reward review results</h1>
+    <p class="hero-text light-text">{{ card.bank_name }} - {{ card.card_name }}</p>
+    <div class="feature-list">
+      <span>{{ result.transactions_analyzed }} transactions reviewed</span>
+      <span>{{ result.discrepancies_found }} review items</span>
+      <span>Statement ref {{ result.statement_id[-8:] }}</span>
+    </div>
+  </div>
+  <div class="hero-card result-summary-card">
+    <img class="brand-mark large" src="/static/cardpilot-icon.svg" alt="CardPilot">
+    <span>Possible missing value</span>
+    <strong>₹{{ '%.2f'|format(result.total_possible_missing_value_inr) }}</strong>
+    <p class="muted-text">Only rows where actual credited reward is visible are treated as missing-reward cases.</p>
+    <a class="button-link secondary-link" href="/app#analyze">Analyze another statement</a>
+  </div>
+</section>
+
+<section class="metric-grid">
+  <div class="metric"><span>Transactions reviewed</span><strong>{{ result.transactions_analyzed }}</strong></div>
+  <div class="metric"><span>Items needing review</span><strong>{{ result.discrepancies_found }}</strong></div>
+  <div class="metric"><span>Possible missing value</span><strong>₹{{ '%.2f'|format(result.total_possible_missing_value_inr) }}</strong></div>
+  <div class="metric"><span>Statement ref</span><strong class="small-text">{{ result.statement_id }}</strong></div>
+</section>
+
+<section class="panel professional-panel">
+  <div class="panel-title">
+    <div>
+      <p class="eyebrow">Transaction-level calculation</p>
+      <h2>Expected vs actual rewards</h2>
+      <p class="muted-text">PDF statements often show transactions but not card rewards per transaction. When actual reward is not visible, CardPilot shows the expected reward without creating a complaint draft.</p>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Merchant</th><th>Amount</th><th>Expected</th><th>Actual credited</th><th>Difference</th><th>Status</th><th>Rule</th></tr>
+      </thead>
+      <tbody>
+      {% for row in result.rows %}
+        {% set is_issue = row.status == 'possible_missing_reward' %}
+        {% set is_expected_only = row.status == 'expected_reward_only' %}
+        <tr class="{{ 'issue-row' if is_issue else 'expected-row' if is_expected_only else '' }}">
+          <td>{{ row.transaction_date }}</td>
+          <td><strong>{{ row.merchant_raw }}</strong><br><span>{{ row.merchant_normalized }}</span></td>
+          <td>₹{{ '%.2f'|format(row.amount_inr or 0) }}</td>
+          <td><strong>₹{{ '%.2f'|format(row.expected_value_inr or 0) }}</strong></td>
+          <td>{% if row.actual_value_found %}₹{{ '%.2f'|format(row.actual_value_inr or 0) }}{% else %}<span class="status-chip neutral-chip">Not visible</span>{% endif %}</td>
+          <td>{% if row.difference_value_inr is not none %}<strong>₹{{ '%.2f'|format(row.difference_value_inr or 0) }}</strong>{% else %}<span class="muted-text">-</span>{% endif %}</td>
+          <td>
+            {% if is_issue %}<span class="status-chip warning-chip">Review needed</span>
+            {% elif is_expected_only %}<span class="status-chip neutral-chip">Expected only</span>
+            {% else %}<span class="status-chip safe-chip">No major issue</span>{% endif %}
+            <br><span>{{ row.confidence }}</span>
+          </td>
+          <td>{{ row.rule_id or '-' }}<br><span>{{ row.reward_rate or '' }}</span></td>
+        </tr>
+        <tr><td colspan="8" class="explanation-cell">{{ row.explanation }}</td></tr>
+        {% if row.complaint_body %}
+        <tr><td colspan="8"><details class="complaint-box" open><summary>Ready-to-copy bank review draft for {{ row.merchant_raw }}</summary><pre>{{ row.complaint_body }}</pre></details></td></tr>
+        {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

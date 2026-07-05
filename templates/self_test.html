@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}System check - CardPilot{% endblock %}
+{% block content %}
+<section class="app-hero slim-hero"><div><p class="eyebrow">System check</p><h1>CardPilot diagnostics</h1><p class="hero-text">Run checks for database, merchant mapping, parser, reward engine, recommendation engine, portfolio, and statement analysis.</p></div><div class="account-card"><span class="pill {{ 'success-pill' if report.failed == 0 else 'warning-pill' }}">{{ report.passed }} passed / {{ report.failed }} failed</span><strong>{{ 'Ready' if report.failed == 0 else 'Needs attention' }}</strong></div></section>
+<section class="panel"><div class="panel-title"><div><p class="eyebrow">Check results</p><h2>Core modules</h2></div><a class="button-link secondary-link small-link" href="/self-test.json" target="_blank">View JSON</a></div><div class="check-list">{% for check in report.checks %}<div class="check-row {{ 'check-pass' if check.ok else 'check-fail' }}"><span>{{ 'PASS' if check.ok else 'FAIL' }}</span><div><strong>{{ check.name }}</strong><p>{{ check.detail }}</p></div></div>{% endfor %}</div></section>
+<section class="metric-grid"><div class="metric"><span>Cards</span><strong>{{ stats.cards }}</strong></div><div class="metric"><span>Rules</span><strong>{{ stats.rules }}</strong></div><div class="metric"><span>Merchants</span><strong>{{ stats.merchants }}</strong></div><div class="metric"><span>Review items</span><strong>{{ stats.discrepancies }}</strong></div></section>
+{% endblock %}
